@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">Screen Clock</string>
+    <string name="title_home">Настольные часы</string>
+    <string name="title_dashboard">Dashboard</string>
+    <string name="title_notifications">Notifications</string>
+    <string name="clock">Настольные\n   часы</string>
+</resources>
