@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/Purple2"
+    android:gravity="center"
+    android:orientation="vertical">
+
+    <TextView
+
+        android:id="@+id/month2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:paddingTop="0dp"
+        android:paddingBottom="2dp"
+        android:textColor="@color/Purple2"
+        android:textColorHint="#FFF"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/editTextTextMultiLine"
+        android:layout_width="match_parent"
+        android:layout_height="243dp"
+        android:layout_marginLeft="15dp"
+        android:layout_marginRight="15dp"
+        android:background="@drawable/event_edit_border"
+        android:drawablePadding="10dp"
+        android:ems="10"
+        android:gravity="start|top"
+        android:minHeight="48dp"
+        android:paddingLeft="10dp"
+        android:paddingTop="5dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="5dp"
+        android:textColor="@color/Purple2"
+        tools:ignore="Autofill,LabelFor,SpeakableTextPresentCheck,VisualLintTextFieldSize" />
+
+    <TextView
+        android:id="@+id/textView2"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+</LinearLayout>

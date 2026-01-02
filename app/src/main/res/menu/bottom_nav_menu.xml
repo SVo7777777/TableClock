@@ -3,7 +3,7 @@
 
     <item
         android:id="@+id/navigation_home"
-        android:icon="@drawable/icons8_clock_64"
+        android:icon="@drawable/icons8_________________32"
         android:title="@string/title_home" />
 
     <!--<item
@@ -13,7 +13,7 @@
 
     <item
         android:id="@+id/navigation_notifications"
-        android:icon="@drawable/ic_notifications_black_24dp"
+        android:icon="@drawable/alarm_light_icon_137986"
         android:title="@string/title_notifications" />
 
 </menu>
