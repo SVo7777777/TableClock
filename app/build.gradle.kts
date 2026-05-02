@@ -36,6 +36,8 @@ android {
 
 dependencies {
 
+    implementation ("androidx.work:work-runtime:2.8.1")
+    implementation ("com.google.guava:guava:31.1-android")
     implementation(libs.appcompat)
     implementation(libs.material)
     implementation(libs.constraintlayout)

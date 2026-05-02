@@ -2,8 +2,14 @@ package com.example.screenclock.ui.notifications;
 
 import static android.os.ParcelFileDescriptor.MODE_APPEND;
 
+import static androidx.core.content.ContextCompat.getSystemService;
+
+
+
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
@@ -46,6 +52,10 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+import androidx.work.Data;
+import androidx.work.OneTimeWorkRequest;
+import androidx.work.WorkManager;
+
 import android.Manifest;
 
 import com.example.screenclock.BroadcastReceiver0;
@@ -56,6 +66,8 @@ import com.example.screenclock.ReviewTodayActivity;
 import com.example.screenclock.RingtonePlayingService;
 import com.example.screenclock.ScreenReceiver;
 import com.example.screenclock.ServiceReceiver;
+import com.example.screenclock.SmsService;
+import com.example.screenclock.SmsWorker;
 import com.example.screenclock.databinding.FragmentNotificationsBinding;
 import com.yandex.mobile.ads.banner.BannerAdEventListener;
 import com.yandex.mobile.ads.banner.BannerAdSize;
@@ -74,6 +86,9 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.text.SimpleDateFormat;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
+
+import com.example.screenclock.PhoneFromFile;
 
 public class NotificationsFragment extends Fragment {
 
@@ -93,6 +108,8 @@ public class NotificationsFragment extends Fragment {
     ServiceReceiver serviceReceiver;
     LinearLayout view;
     Boolean sms;
+    @SuppressLint("SdCardPath")
+    private static final String APP_SD_PATH = "/data/data/com.example.screenclock";
 
     int brightness;
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -112,7 +129,17 @@ public class NotificationsFragment extends Fragment {
 
         Toast.makeText(getActivity(), "Cигнализация включена!", Toast.LENGTH_SHORT).show();
 
+
         checkAndRPermission();
+//смс отправляется через 5 сек после нажатия на вкладку сигнализация
+        //scheduleSmsAfterUnplug(getActivity(), "+79156954581", "Sms sending!");
+
+
+//        Intent serviceIntent = new Intent(getActivity(), SmsService.class);
+//        serviceIntent.putExtra("phoneNumber", "+79156954581");
+//        serviceIntent.putExtra("message", "sms sending!!");
+//        getActivity().startService(serviceIntent);
+        //sendSmsByManager("+79156954581", "смс отправлена!");
 //        SwitchCompat switch1 = root.findViewById(R.id.switch1);
 //        switch1.setTextSize(20);
 //        switch1.setTypeface( Typeface.DEFAULT_BOLD );
@@ -268,6 +295,18 @@ public class NotificationsFragment extends Fragment {
             }
         });
         //ActivityCompat.requestPermissions(this,new String[]{Manifest.permission.SEND_SMS},1);
+        String sFolder =  APP_SD_PATH + "/files";
+        String sFile=sFolder+"/"+"phone.txt";
+        String[] number = PhoneFromFile.phoneFromFile(sFile);
+        if (number[1].equals("on")){
+            button3.setTextColor(Color.RED);
+            System.out.println(number[1]);
+            button3.setText("Отправка смс включена");
+        }else {
+            button3.setTextColor(Color.WHITE);
+            System.out.println(number[1]);
+            button3.setText("Отправка смс выключена");
+        }
 
         button3.setOnClickListener(new View.OnClickListener() {
             @SuppressLint({"SetTextI18n", "SimpleDateFormat"})
@@ -319,7 +358,13 @@ public class NotificationsFragment extends Fragment {
                         System.out.println("on");
                         switch1.setChecked(true);
                         switch1.setTextColor( Color.RED);
+                        switch1.setText("Отправка смс включена");
                         button3.setTextColor(Color.RED);
+                        button3.setText("Отправка смс включена");
+                        //sendSmsByManager("+79156954581", "смс отправлена!");
+                    }else {
+                        button3.setTextColor(Color.WHITE);
+                        button3.setText("Отправка смс выключена");
                     }
 
                     System.out.println(line1);
@@ -368,7 +413,7 @@ public class NotificationsFragment extends Fragment {
                                  OutputStreamWriter osw = new OutputStreamWriter(fos)) {
                                 //String data = String.valueOf(textMultiline.getText());
                                 osw.write(line1+"\n"+"on");
-
+                                //sendSmsByManager("+79156954581", "смс отправлена!");
                                 System.out.println("on");
                                 Toast.makeText(getActivity(), "Отправка СМС включена!!",
                                         Toast.LENGTH_LONG).show();
@@ -386,6 +431,8 @@ public class NotificationsFragment extends Fragment {
 //                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
                             buttonView.setText("Отправка смс включена");
                             switch1.setTextColor( Color.RED);
+                            button3.setTextColor(Color.RED);
+                            button3.setText("Отправка смс включена");
                         }
 
                         // if the above condition turns false
@@ -432,6 +479,8 @@ public class NotificationsFragment extends Fragment {
 //                    AppCompatDelegate.setDefaultNightMode (AppCompatDelegate.MODE_NIGHT_NO);
                             buttonView.setText("Отправка смс выключена");
                             switch1.setTextColor( Color.WHITE);
+                            button3.setTextColor(Color.WHITE);
+                            button3.setText("Отправка смс выключена");
                         }
                     }
                 });
@@ -486,6 +535,7 @@ public class NotificationsFragment extends Fragment {
                                 osw.write(name1+"\noff");
                                 Toast.makeText(getActivity(), "Телефон "+name1+" сохранён!",
                                         Toast.LENGTH_LONG).show();
+                                phone = name1;
                                 //вывод диалогового окна, что запись внесена
 //                                CustomDialogFragment dialog2 = new CustomDialogFragment();
 //                                dialog2.show(getSupportFragmentManager(), "custom");
@@ -520,7 +570,8 @@ public class NotificationsFragment extends Fragment {
 //                        mydb.deleteContact1(id);
 //                        mydb.deleteContact(id);
 //                        list.removeView(ln);
-                        alertDialog.dismiss();
+                        employee_name1.setText("");
+                        //alertDialog.dismiss();
                     }
                 });
             };
@@ -545,6 +596,21 @@ public class NotificationsFragment extends Fragment {
         });
 
         return root;
+    }
+
+    private void scheduleSmsAfterUnplug(Context context, String phone_number, String  message) {
+        Data inputData = new Data.Builder()
+                .putString("phone_number", phone_number) // Замените на нужный номер
+                .putString("message", message)
+                .build();
+
+        OneTimeWorkRequest smsWork = new OneTimeWorkRequest.Builder(SmsWorker.class)
+                .setInputData(inputData)
+                .setInitialDelay(5, TimeUnit.SECONDS) // Задержка 30 секунд
+                .addTag("sms_after_unplug")
+                .build();
+
+        WorkManager.getInstance(context).enqueue(smsWork);
     }
     public void sendSmsBySIntent() {
         // add the phone number in the data

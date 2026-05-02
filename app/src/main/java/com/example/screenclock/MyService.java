@@ -31,7 +31,7 @@ public class MyService extends Service {
             NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
 
             // notificationID allows you to update the notification later on.
-            mNotificationManager.notify(100, mBuilder.build());
+           // mNotificationManager.notify(100, mBuilder.build());
             startForeground(100, mBuilder.getNotification());
 
 
