@@ -1,7 +1,8 @@
 <resources>
-    <string name="app_name">Screen clock</string>
+    <string name="app_name">Table clock</string>
     <string name="title_home">Настольные часы</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Сигнализация</string>
-    <string name="clock">Настольные часы</string>
+    <string name="clock">Настольные часы + </string>
+    <string name="clock2">сигнализацией</string>
 </resources>

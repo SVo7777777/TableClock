@@ -3,12 +3,14 @@ package com.example.screenclock;
 import android.annotation.SuppressLint;
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.media.Ringtone;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.IBinder;
+import android.widget.Toast;
 
 import java.io.FileNotFoundException;
 
@@ -26,6 +28,12 @@ public class RingtonePlayingService extends Service {
 
     {
         //Uri notification =Uri.parse("content://media/internal/audio/media/113");
+//            try {
+//                Thread.sleep(5000);
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+            //Toast.makeText(Context, toastMessage, Toast.LENGTH_LONG).show();
 
             Uri notification = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
             if (notification == null) {

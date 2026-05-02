@@ -60,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:format24Hour="EEEE\n dd-MM-yyyy"
+                android:format24Hour="EEEE\n dd MMMM yyyy"
                 android:gravity="center|center_horizontal"
                 android:textColor="@color/white"
 

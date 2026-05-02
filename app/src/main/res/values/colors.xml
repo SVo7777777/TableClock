@@ -8,4 +8,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="Purple2">#7A0671</color>
+    <color name="salmon_pink">#FF91A4</color>#FF91A4
+    <color name="green"> #336600</color>#FF91A4
+    <color name="red"> #ff0000</color>#FF91A4
 </resources>

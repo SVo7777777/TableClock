@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/Purple2"
+    android:keepScreenOn="true"
     tools:context=".ui.notifications.NotificationsFragment">
 
     <ScrollView
@@ -40,7 +41,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:format24Hour="EEEE\n dd-MM-yyyy"
+                android:format24Hour="EEEE\n dd MMMM yyyy"
                 android:gravity="center|center_horizontal"
                 android:textColor="@color/white"
 
@@ -80,7 +81,7 @@
                 android:paddingStart="5dp"
                 android:paddingEnd="5dp"
                 android:textColor="@color/black"
-                android:textSize="20sp"
+                android:textSize="16sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/button2"
@@ -92,6 +93,16 @@
                 android:backgroundTint="@color/purple_700"
                 android:gravity="center"
                 android:text="выключить сигнал"
+                android:textStyle="bold"
+                tools:ignore="HardcodedText,MissingConstraints" />
+
+            <Button
+                android:id="@+id/button3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:backgroundTint="@color/purple_700"
+                android:gravity="center"
+                android:text="отправка смс"
                 android:textStyle="bold"
                 tools:ignore="HardcodedText,MissingConstraints" />
 

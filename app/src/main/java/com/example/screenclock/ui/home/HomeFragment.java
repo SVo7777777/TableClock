@@ -1,6 +1,9 @@
 package com.example.screenclock.ui.home;
 
 import android.app.Activity;
+import android.content.Context;
+import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -8,12 +11,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.screenclock.BroadcastReceiver0;
+
+import com.example.screenclock.FileEmpty;
 import com.example.screenclock.databinding.FragmentHomeBinding;
 import com.yandex.mobile.ads.banner.BannerAdEventListener;
 import com.yandex.mobile.ads.banner.BannerAdSize;
@@ -23,10 +32,15 @@ import com.yandex.mobile.ads.common.AdRequestError;
 import com.yandex.mobile.ads.common.ImpressionData;
 import com.yandex.mobile.ads.common.MobileAds;
 
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+
 public class HomeFragment extends Fragment {
 
     private FragmentHomeBinding binding;
     private BannerAdView mBannerAd = null;
+    BroadcastReceiver0 BroadcastReceiver;
 
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -38,7 +52,43 @@ public class HomeFragment extends Fragment {
 
         final TextView textView = binding.textHome;
         homeViewModel.getText().observe(getViewLifecycleOwner(), textView::setText);
+        BroadcastReceiver = new BroadcastReceiver0();
+        IntentFilter filter0 = new IntentFilter();
+        filter0.addAction("android.provider.Telephony.SMS_RECEIVED");
 
+        boolean exists = FileEmpty.fileExistsInSD("phone.txt");
+//        String data = String.valueOf(textMultiline.getText());
+//        System.out.println(data.length());
+        if (exists) {
+            System.out.println("exist");
+        }else {
+            System.out.println(" not exist");
+            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
+                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
+                //String data = String.valueOf(textMultiline.getText());
+                osw.write("number \noff");
+                //            Toast.makeText(getActivity(), "Телефон "+name1+" сохранён!",
+                //                    Toast.LENGTH_LONG).show();
+                //вывод диалогового окна, что запись внесена
+                //                                CustomDialogFragment dialog2 = new CustomDialogFragment();
+                //                                dialog2.show(getSupportFragmentManager(), "custom");
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+//
+//        int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
+//
+//        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
+//            readContacts();
+//        } else {
+//            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CONTACTS},
+//                    REQUEST_CODE_PERMISSION_READ_CONTACTS);
+//        }
+
+//////        // Register the receiver using the activity context.
+        getActivity().registerReceiver(BroadcastReceiver, filter0);
 
         binding.adContainerView.getViewTreeObserver().addOnGlobalLayoutListener(
                 new ViewTreeObserver.OnGlobalLayoutListener() {
@@ -59,6 +109,20 @@ public class HomeFragment extends Fragment {
 
 
     }
+//    @Override
+//    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+//        switch (requestCode) {
+//            case REQUEST_CODE_PERMISSION_READ_CONTACTS:
+//                if (grantResults.length > 0
+//                        && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+//                    // permission granted
+//                    readContacts();
+//                } else {
+//                    // permission denied
+//                }
+//                return;
+//        }
+//    }
     @NonNull
     private BannerAdSize getAdSize() {
         final DisplayMetrics displayMetrics = getResources().getDisplayMetrics();
@@ -139,6 +203,10 @@ public class HomeFragment extends Fragment {
 
     @Override
     public void onDestroyView() {
+        if (BroadcastReceiver != null) {
+            getActivity().unregisterReceiver(BroadcastReceiver);
+            BroadcastReceiver = null;
+        }
         super.onDestroyView();
         binding = null;
     }
