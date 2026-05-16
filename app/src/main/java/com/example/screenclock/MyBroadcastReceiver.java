@@ -86,10 +86,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
             String toastMessage = "unknown intent action";
             switch (intentAction){
                 case Intent.ACTION_POWER_DISCONNECTED:
-//                    Intent serviceIntent = new Intent();
-//                    serviceIntent.putExtra("phone_number", "+79156954581");
-//                    serviceIntent.putExtra("message", "Зарядка отключена!");
-//                    SmsJobIntentService.enqueueWork(context, serviceIntent);
+
                     //sendReplySms(context, number[0], toastMessage);
                     //turnOnScreen();
 
