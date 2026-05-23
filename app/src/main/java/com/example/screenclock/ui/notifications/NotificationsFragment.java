@@ -1,33 +1,19 @@
 package com.example.screenclock.ui.notifications;
 
-import static android.os.ParcelFileDescriptor.MODE_APPEND;
-
-import static androidx.core.content.ContextCompat.getSystemService;
-
-
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.appwidget.AppWidgetManager;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
-import android.media.Ringtone;
-import android.media.RingtoneManager;
 import android.net.Uri;
-import android.os.BatteryManager;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.PowerManager;
-import android.os.Vibrator;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -46,7 +32,6 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.app.AppCompatDelegate;
 import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
@@ -59,14 +44,10 @@ import androidx.work.WorkManager;
 import android.Manifest;
 
 import com.example.screenclock.BroadcastReceiver0;
-import com.example.screenclock.MainActivity;
 import com.example.screenclock.MyBroadcastReceiver;
 import com.example.screenclock.R;
-import com.example.screenclock.ReviewTodayActivity;
 import com.example.screenclock.RingtonePlayingService;
 import com.example.screenclock.ScreenReceiver;
-import com.example.screenclock.ServiceReceiver;
-import com.example.screenclock.SmsService;
 import com.example.screenclock.SmsWorker;
 import com.example.screenclock.databinding.FragmentNotificationsBinding;
 import com.yandex.mobile.ads.banner.BannerAdEventListener;
@@ -76,7 +57,6 @@ import com.yandex.mobile.ads.common.AdRequest;
 import com.yandex.mobile.ads.common.AdRequestError;
 import com.yandex.mobile.ads.common.ImpressionData;
 import com.yandex.mobile.ads.common.MobileAds;
-import android.provider.Settings;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -84,7 +64,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
-import java.text.SimpleDateFormat;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
@@ -105,7 +84,7 @@ public class NotificationsFragment extends Fragment {
     BroadcastReceiver0 BroadcastReceiver;
     ScreenReceiver screenReceiver;
     PowerManager powerManager;
-    ServiceReceiver serviceReceiver;
+
     LinearLayout view;
     Boolean sms;
     @SuppressLint("SdCardPath")
@@ -270,12 +249,12 @@ public class NotificationsFragment extends Fragment {
 //////        // Register the receiver using the activity context.
         getActivity().registerReceiver(BroadcastReceiver, filter0);
 
-        serviceReceiver = new ServiceReceiver();
-        IntentFilter filter01 = new IntentFilter();
-        filter01.addAction("android.provider.Telephony.SMS_RECEIVED");
-
-//////        // Register the receiver using the activity context.
-        getActivity().registerReceiver(serviceReceiver, filter0) ;
+//        serviceReceiver = new ServiceReceiver();
+//        IntentFilter filter01 = new IntentFilter();
+//        filter01.addAction("android.provider.Telephony.SMS_RECEIVED");
+//
+////////        // Register the receiver using the activity context.
+//        getActivity().registerReceiver(serviceReceiver, filter0) ;
 
         screenReceiver = new ScreenReceiver();
         IntentFilter filter1 = new IntentFilter();
@@ -679,22 +658,7 @@ public class NotificationsFragment extends Fragment {
                     101);
             System.out.println("checkAndRPermission3");
         }
-//        if (ContextCompat.checkSelfPermission(getActivity(),
-//                Manifest.permission.SEND_SMS)
-//                != PackageManager.PERMISSION_GRANTED) {
-//            if (ActivityCompat.shouldShowRequestPermissionRationale(getActivity(),
-//                    Manifest.permission.SEND_SMS)) {
-//
-//                ActivityCompat.requestPermissions(getActivity(),
-//                        new String[]{Manifest.permission.SEND_SMS},
-//                        101);
-//            }else{
-//                System.out.println("checkAndRPermission");
-//                sendSmsByManager();
-//            }
-//        }else {
-//            System.out.println("checkAndRPermission2");
-//        }
+
     }
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
@@ -702,8 +666,7 @@ public class NotificationsFragment extends Fragment {
             case 101: {
                 if (grantResults.length > 0
                         && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    //SmsManager smsManager = SmsManager.getDefault();
-                    //sendSmsByManager();
+
                     System.out.println("разрешение");
 //                    smsManager.sendTextMessage("+79156954581", null, "hello!!!!!", null, null);
 //                    Toast.makeText(getActivity(), "SMS sent.",

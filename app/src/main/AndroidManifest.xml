@@ -8,7 +8,7 @@
 
 
 
-    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.DISABLE_KEYGUARD" />
@@ -16,11 +16,9 @@
     <uses-permission android:name="android.permission.SEND_SMS"
         tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
-    <uses-permission android:name="android.permission.RECEIVE_SMS"
-        tools:ignore="PermissionImpliesUnsupportedChromeOsHardware" />
+
     <uses-permission android:name="android.permission.SMS_DELIVERED"/>
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
-    <uses-permission android:name="android.permission.READ_CONTACTS" />
+
 
 
 
@@ -40,29 +38,11 @@
         tools:targetApi="31">
         <service android:name=".SmsJobIntentService"
             android:permission="android.permission.BIND_JOB_SERVICE" />
-        <service android:name=".SmsService"
-            android:enabled="true"
-            android:exported="false" />
+
         <service android:name=".RingtonePlayingService"
             android:foregroundServiceType="dataSync"
             tools:ignore="ForegroundServicePermission" />
-        <service android:name=".NotificationListener"
-            android:exported="true"
-            android:enabled="true"
-            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
-            <intent-filter>
-                <action android:name="android.service.notification.NotificationListenerService" />
-            </intent-filter>
-            <meta-data
-                android:name="android.service.notification.default_filter_types"
-                android:value="conversations|alerting">
-            </meta-data>
-            <meta-data
-                android:name="android.service.notification.disabled_filter_types"
-                android:value="ongoing|silent">
-            </meta-data>
 
-        </service>
 
         <activity
             android:name=".SplashActivity"
@@ -106,14 +86,7 @@
             </intent-filter>
 
         </receiver>
-        <receiver
-            android:name=".ServiceReceiver"
-            android:enabled="true"
-            android:exported="true">
-        <intent-filter>
-            <action android:name="android.intent.action.PHONE_STATE" />
-        </intent-filter>
-        </receiver>
+
         <receiver android:name=".BootReceiver"
             android:enabled="true"
             android:exported="true">
