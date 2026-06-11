@@ -99,6 +99,7 @@ public class HomeFragment extends Fragment {
                     }
                 }
         );
+        //
         MobileAds.initialize(getActivity(), () -> {
             // now you can use ads
             System.out.println("yandex secseful");

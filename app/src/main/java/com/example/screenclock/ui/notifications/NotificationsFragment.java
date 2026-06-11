@@ -235,6 +235,7 @@ public class NotificationsFragment extends Fragment {
 //        Settings.System.putInt(getActivity().getContentResolver(),
 //                Settings.System.SCREEN_BRIGHTNESS, 200);
         //turnOnScreen();
+        //
         myBroadcastReceiver = new MyBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);

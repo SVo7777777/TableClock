@@ -43,7 +43,7 @@ public class MainActivity extends AppCompatActivity {
                     NotificationManager.IMPORTANCE_DEFAULT
             );
             channel.setDescription("Уведомления об отправке SMS");
-
+//
             //NotificationManager notificationManager = getSystemService(NotificationManager.class);
             NotificationManager notificationManager =
                     (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
