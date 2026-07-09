@@ -93,7 +93,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                             System.out.println("ooooooonnnnn");
                             System.out.println(number[0]);
                             Intent serviceIntent = new Intent();
-                            serviceIntent.putExtra("phone_number", "+79156954581");
+                            serviceIntent.putExtra("phone_number", number[0]);
                             serviceIntent.putExtra("message", " Устройство не заряжается! Возможно нет электричества.");
                             SmsJobIntentService.enqueueWork(context, serviceIntent);
                             //scheduleSmsAfterUnplug(context, number[0], toastMessage);
