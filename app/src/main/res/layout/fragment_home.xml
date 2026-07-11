@@ -47,6 +47,7 @@
                 android:textColor="@color/white"
                 android:textSize="86sp"
                 android:textStyle="bold"
+                android:screenOrientation="fullSensor"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintHorizontal_bias="0.493"
@@ -89,15 +90,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
 
-            <Button
+            <!--<Button
                 android:id="@+id/button3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:backgroundTint="@color/purple_700"
                 android:gravity="center"
                 android:text="отправка смс"
+                android:textColor="@color/white"
                 android:textStyle="bold"
-                tools:ignore="HardcodedText,MissingConstraints" />
+                tools:ignore="HardcodedText,MissingConstraints" />-->
 
 
             <com.yandex.mobile.ads.banner.BannerAdView
