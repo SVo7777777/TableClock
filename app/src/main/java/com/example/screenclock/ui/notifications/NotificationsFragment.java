@@ -56,7 +56,7 @@ import com.yandex.mobile.ads.banner.BannerAdView;
 import com.yandex.mobile.ads.common.AdRequest;
 import com.yandex.mobile.ads.common.AdRequestError;
 import com.yandex.mobile.ads.common.ImpressionData;
-import com.yandex.mobile.ads.common.MobileAds;
+import com.yandex.mobile.ads.common.YandexAds;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -570,7 +570,7 @@ public class NotificationsFragment extends Fragment {
                     }
                 }
         );
-        MobileAds.initialize(getActivity(), () -> {
+        YandexAds.initialize(getActivity(), () -> {
             // now you can use ads
             System.out.println("yandex secseful");
         });
@@ -704,13 +704,14 @@ public class NotificationsFragment extends Fragment {
         }
         final int adWidth = Math.round(adWidthPixels / displayMetrics.density);
 
-        return BannerAdSize.stickySize(getActivity(), adWidth);
+        return BannerAdSize.sticky(getActivity(), adWidth);
     }
     @NonNull
     private BannerAdView loadBannerAd(@NonNull final BannerAdSize adSize) {
         final BannerAdView bannerAd = binding.adContainerView;
         bannerAd.setAdSize(adSize);
-        bannerAd.setAdUnitId("R-M-18319832-1");//"demo-banner-yandex"
+
+        //bannerAd.loadAd("R-M-18319832-1");//"demo-banner-yandex"
         bannerAd.setBannerAdEventListener(new BannerAdEventListener() {
             @Override
             public void onAdLoaded() {
@@ -745,13 +746,11 @@ public class NotificationsFragment extends Fragment {
                 System.out.println("onAdClicked");
             }
 
-            @Override
             public void onLeftApplication() {
                 // Called when user is about to leave application (e.g., to go to the browser), as a result of clicking on the ad.
                 System.out.println("onLeftApplication");
             }
 
-            @Override
             public void onReturnedToApplication() {
                 // Called when user returned to application after click.
                 System.out.println("onReturnedToApplication");
@@ -764,7 +763,7 @@ public class NotificationsFragment extends Fragment {
                     System.out.println("onImpression");
             }
         });
-        final AdRequest adRequest = new AdRequest.Builder()
+        final AdRequest adRequest = new AdRequest.Builder("R-M-18319832-1")
                 // Methods in the AdRequest.Builder class can be used here to specify individual options settings.
                 .build();
         bannerAd.loadAd(adRequest);

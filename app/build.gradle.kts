@@ -46,7 +46,7 @@ dependencies {
     implementation(libs.lifecycle.viewmodel.ktx)
     implementation(libs.navigation.fragment)
     implementation(libs.navigation.ui)
-    implementation ("com.yandex.android:mobileads:7.18.1")
+    implementation ("com.yandex.android:mobileads:8.2.0")
     implementation ("androidx.fragment:fragment-ktx:1.6.1")
     testImplementation(libs.junit)
     androidTestImplementation(libs.ext.junit)
