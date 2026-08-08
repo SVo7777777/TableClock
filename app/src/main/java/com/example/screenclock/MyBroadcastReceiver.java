@@ -11,6 +11,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.media.Ringtone;
@@ -55,6 +56,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
     public NotificationsFragment fragment;
     PowerManager powerManager;
     Boolean phone;
+    private SharedPreferences prefs;
     private static final String ACTION_SEND_SMS = "com.example.screenclock.ACTION_SEND_SMS";
     @SuppressLint("SdCardPath")
     private static final String APP_SD_PATH = "/data/data/com.example.screenclock";
@@ -92,9 +94,11 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                         if (Objects.equals(number[1], "on")){
                             System.out.println("ooooooonnnnn");
                             System.out.println(number[0]);
+                            prefs = context.getSharedPreferences("sms_settings", Context.MODE_PRIVATE);
+                            String savedSms = prefs.getString("sms", "");
                             Intent serviceIntent = new Intent();
                             serviceIntent.putExtra("phone_number", number[0]);
-                            serviceIntent.putExtra("message", " Устройство не заряжается! Возможно нет электричества.");
+                            serviceIntent.putExtra("message", savedSms);
                             SmsJobIntentService.enqueueWork(context, serviceIntent);
                             //scheduleSmsAfterUnplug(context, number[0], toastMessage);
                             //sendReplySms(context, number[0], toastMessage);

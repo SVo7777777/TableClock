@@ -28,7 +28,7 @@
         android:gravity="center"
         android:paddingTop="0dp"
         android:paddingBottom="2dp"
-        android:text="Введите номер телефона, на который нужно отправить СМС об отключении электричества"
+        android:text="Введите номер телефона, на который нужно отправить СМС, и текст СМС (в поле СМС по умолчанию)"
         android:textColor="@color/Purple2"
         android:textColorHint="#FFF"
         android:textSize="20sp"
@@ -67,6 +67,45 @@
             android:ems="10"
             android:gravity="start|top"
             android:inputType="phone"
+            android:textColor="@color/black"
+            android:textSize="20sp"
+            tools:ignore="InefficientWeight,SpeakableTextPresentCheck" />
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/sms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="3"
+            android:gravity="right"
+            android:text="СМС"
+            android:textColor="@color/Purple2"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            tools:ignore="HardcodedText,RtlHardcoded" />
+
+        <TextView
+            android:id="@+id/textV"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=":"
+            android:textSize="16sp" />
+
+        <EditText
+            android:id="@+id/editSms"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:ems="10"
+            android:gravity="start|top"
+            android:hint="Устройство не заряжается!"
+            android:inputType="text|textMultiLine"
             android:textColor="@color/black"
             android:textSize="20sp"
             tools:ignore="InefficientWeight,SpeakableTextPresentCheck" />

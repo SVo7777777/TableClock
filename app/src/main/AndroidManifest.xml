@@ -19,9 +19,9 @@
 
     <uses-permission android:name="android.permission.SMS_DELIVERED"/>
 
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-    <!-- Если нужна ещё и приблизительная геолокация -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    &lt;!&ndash; Если нужна ещё и приблизительная геолокация &ndash;&gt;
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
 
 
     <!--<uses-permission android:name="android.permission.SEND_SMS"

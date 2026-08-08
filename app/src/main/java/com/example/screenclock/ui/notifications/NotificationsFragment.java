@@ -8,12 +8,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.graphics.Typeface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
 import android.telephony.SmsManager;
 import android.util.DisplayMetrics;
 import android.view.LayoutInflater;
@@ -84,20 +86,25 @@ public class NotificationsFragment extends Fragment {
     BroadcastReceiver0 BroadcastReceiver;
     ScreenReceiver screenReceiver;
     PowerManager powerManager;
-
+    private SharedPreferences prefs;
     LinearLayout view;
     Boolean sms;
     @SuppressLint("SdCardPath")
     private static final String APP_SD_PATH = "/data/data/com.example.screenclock";
 
     int brightness;
+    @SuppressLint("UseRequireInsteadOfGet")
     public View onCreateView(@NonNull LayoutInflater inflater,
-                                                       ViewGroup container, Bundle savedInstanceState) {
+                             ViewGroup container, Bundle savedInstanceState) {
         NotificationsViewModel notificationsViewModel =
                 new ViewModelProvider(this).get(NotificationsViewModel.class);
 
         binding = FragmentNotificationsBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
+
+        //prefs = PreferenceManager.getDefaultSharedPreferences(getContext());
+        prefs = Objects.requireNonNull(getActivity()).getSharedPreferences("sms_settings", Context.MODE_PRIVATE);
+
         timePicker = root.findViewById(R.id.timePicker);
         button2 = root.findViewById(R.id.button2);
         button3 = root.findViewById(R.id.button3);
@@ -108,7 +115,9 @@ public class NotificationsFragment extends Fragment {
 
         Toast.makeText(getActivity(), "Cигнализация включена!", Toast.LENGTH_SHORT).show();
 
-
+//        SharedPreferences.Editor editor = prefs.edit();
+//        editor.putString("sms", "Устройство не заряжается!");
+//        editor.apply();
         checkAndRPermission();
 //смс отправляется через 5 сек после нажатия на вкладку сигнализация
         //scheduleSmsAfterUnplug(getActivity(), "+79156954581", "Sms sending!");
@@ -312,7 +321,10 @@ public class NotificationsFragment extends Fragment {
                 Button close = view.findViewById(R.id.close);
                 Button delete = view.findViewById(R.id.button3);
                 EditText employee_name1 = view.findViewById(R.id.editTextName1);
+                EditText text_sms = view.findViewById(R.id.editSms);
                 SwitchCompat switch1 = view.findViewById(R.id.switch1);
+
+                text_sms.setText(prefs.getString("sms", ""));
 
                 String line1 = null;
                 String line2 = null;
@@ -499,32 +511,63 @@ public class NotificationsFragment extends Fragment {
                     public void onClick(View view) {
 
                         String name1 = String.valueOf(employee_name1.getText());
-//                        String name2 = String.valueOf(employee_name2.getText());
+                        String sms = String.valueOf(text_sms.getText());
 //                        String phone = String.valueOf(employee_phone.getText());
 //                        String address = String.valueOf(employee_address.getText());
                         String name_employee = name1+" ";//+name2;
 
-                        if (employee_name1.getText().toString().trim().isEmpty()){// || employee_name2.getText().toString().trim().isEmpty()) {
-                            Toast.makeText(getActivity(), "Заполните поля!", Toast.LENGTH_LONG).show();
+                        if (employee_name1.getText().toString().trim().isEmpty() || employee_name1.getText().equals("number")) {
+                            Toast.makeText(getActivity(), "Введите номер телефона!", Toast.LENGTH_LONG).show();
 
+                        }else if(text_sms.getText().toString().trim().isEmpty()){
+
+                            //SharedPreferences.Editor editor = prefs.edit();
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putString("sms", "Устройство не заряжается!");
+                            editor.apply();
+                            alertDialog.dismiss();
                         } else {
-
-                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-                                //String data = String.valueOf(textMultiline.getText());
-                                osw.write(name1+"\noff");
-                                Toast.makeText(getActivity(), "Телефон "+name1+" сохранён!",
-                                        Toast.LENGTH_LONG).show();
-                                phone = name1;
-                                //вывод диалогового окна, что запись внесена
-//                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-//                                dialog2.show(getSupportFragmentManager(), "custom");
-                            } catch (IOException e) {
-                                throw new RuntimeException(e);
-                            }
+                            SharedPreferences.Editor editor = prefs.edit();
+                            editor.putString("sms", sms);
+                            editor.apply();
+//                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
+//                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
+//                                //String data = String.valueOf(textMultiline.getText());
+//                                osw.write(name1+"\noff");
+//
+//
+//                                phone = name1;
+//                                //вывод диалогового окна, что запись внесена
+////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
+////                                dialog2.show(getSupportFragmentManager(), "custom");
+//                            } catch (IOException e) {
+//                                throw new RuntimeException(e);
+//                            }
                             alertDialog.dismiss();
 
                         }
+                        try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
+                             OutputStreamWriter osw = new OutputStreamWriter(fos)) {
+                            //String data = String.valueOf(textMultiline.getText());
+                            osw.write(name1+"\noff");
+
+
+                            phone = name1;
+                            //вывод диалогового окна, что запись внесена
+//                                CustomDialogFragment dialog2 = new CustomDialogFragment();
+//                                dialog2.show(getSupportFragmentManager(), "custom");
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                        if(text_sms.getText().toString().trim().isEmpty()){
+                            Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: Устройство не заряжается! - сохранена!",
+                                    Toast.LENGTH_LONG).show();
+                        }else{
+                            Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: " + sms + " - сохранена!",
+                                    Toast.LENGTH_LONG).show();
+                        }
+
+
 
 
                         //обновление виджета
@@ -551,6 +594,7 @@ public class NotificationsFragment extends Fragment {
 //                        mydb.deleteContact(id);
 //                        list.removeView(ln);
                         employee_name1.setText("");
+                        text_sms.setText("");
                         //alertDialog.dismiss();
                     }
                 });
