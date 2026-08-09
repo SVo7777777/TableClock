@@ -89,6 +89,7 @@ public class NotificationsFragment extends Fragment {
     private SharedPreferences prefs;
     LinearLayout view;
     Boolean sms;
+    public String finalLine2;
     @SuppressLint("SdCardPath")
     private static final String APP_SD_PATH = "/data/data/com.example.screenclock";
 
@@ -291,9 +292,11 @@ public class NotificationsFragment extends Fragment {
             button3.setTextColor(Color.RED);
             System.out.println(number[1]);
             button3.setText("Отправка смс включена");
+            finalLine2 = "on";
         }else {
             button3.setTextColor(Color.WHITE);
             System.out.println(number[1]);
+            finalLine2 = "off";
             button3.setText("Отправка смс выключена");
         }
 
@@ -349,6 +352,7 @@ public class NotificationsFragment extends Fragment {
                     if (Objects.equals(line, "on")){
                         System.out.println("on");
                         switch1.setChecked(true);
+                        finalLine2 = "on";
                         switch1.setTextColor( Color.RED);
                         switch1.setText("Отправка смс включена");
                         button3.setTextColor(Color.RED);
@@ -356,6 +360,7 @@ public class NotificationsFragment extends Fragment {
                         //sendSmsByManager("+79156954581", "смс отправлена!");
                     }else {
                         button3.setTextColor(Color.WHITE);
+                        finalLine2 = "off";
                         button3.setText("Отправка смс выключена");
                     }
 
@@ -394,8 +399,8 @@ public class NotificationsFragment extends Fragment {
                                     }
                                 }
 
-                                System.out.println(line1);
-                                System.out.println(line2);
+                                System.out.println("line1 "+ line1);
+                                System.out.println("line2 "+line2);
 
 
                             } catch (IOException e) {
@@ -407,6 +412,7 @@ public class NotificationsFragment extends Fragment {
                                 osw.write(line1+"\n"+"on");
                                 //sendSmsByManager("+79156954581", "смс отправлена!");
                                 System.out.println("on");
+                                finalLine2 = "on";
                                 Toast.makeText(getActivity(), "Отправка СМС включена!!",
                                         Toast.LENGTH_LONG).show();
                                 //вывод диалогового окна, что запись внесена
@@ -458,6 +464,8 @@ public class NotificationsFragment extends Fragment {
                                  OutputStreamWriter osw = new OutputStreamWriter(fos)) {
                                 //String data = String.valueOf(textMultiline.getText());
                                 osw.write(line1+"\n"+"off");
+                                System.out.println("off");
+                                finalLine2 = "off";
                                 Toast.makeText(getActivity(), "Отправка СМС выключена!!",
                                         Toast.LENGTH_LONG).show();
                                 //вывод диалогового окна, что запись внесена
@@ -505,6 +513,7 @@ public class NotificationsFragment extends Fragment {
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
 
+
                 add.setOnClickListener(new View.OnClickListener() {
                     @SuppressLint("SetTextI18n")
                     @Override
@@ -516,7 +525,7 @@ public class NotificationsFragment extends Fragment {
 //                        String address = String.valueOf(employee_address.getText());
                         String name_employee = name1+" ";//+name2;
 
-                        if (employee_name1.getText().toString().trim().isEmpty() || employee_name1.getText().equals("number")) {
+                        if (employee_name1.getText().toString().trim().isEmpty() || String.valueOf(employee_name1.getText()).contains("number")) {
                             Toast.makeText(getActivity(), "Введите номер телефона!", Toast.LENGTH_LONG).show();
 
                         }else if(text_sms.getText().toString().trim().isEmpty()){
@@ -525,47 +534,44 @@ public class NotificationsFragment extends Fragment {
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("sms", "Устройство не заряжается!");
                             editor.apply();
-                            alertDialog.dismiss();
+
+                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
+                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
+                                //String data = String.valueOf(textMultiline.getText());
+                                if (Objects.equals(finalLine2, "on")){
+                                    osw.write(name1+"\non");
+                                }else {
+                                    osw.write(name1+"\noff");
+                                }
+                                Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: Устройство не заряжается! - сохранена!",
+                                        Toast.LENGTH_LONG).show();
+                                phone = name1;
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
+                            //alertDialog.dismiss();
                         } else {
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("sms", sms);
                             editor.apply();
-//                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                                //String data = String.valueOf(textMultiline.getText());
-//                                osw.write(name1+"\noff");
-//
-//
-//                                phone = name1;
-//                                //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-                            alertDialog.dismiss();
+                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
+                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
+                                //String data = String.valueOf(textMultiline.getText());
+                                if (Objects.equals(finalLine2, "on")){
+                                    osw.write(name1+"\non");
+                                }else {
+                                    osw.write(name1+"\noff");
+                                }
+                                Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: " + sms + " - сохранена!",
+                                        Toast.LENGTH_LONG).show();
+                                phone = name1;
 
+                            } catch (IOException e) {
+                                throw new RuntimeException(e);
+                            }
                         }
-                        try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-                             OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-                            //String data = String.valueOf(textMultiline.getText());
-                            osw.write(name1+"\noff");
 
 
-                            phone = name1;
-                            //вывод диалогового окна, что запись внесена
-//                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-//                                dialog2.show(getSupportFragmentManager(), "custom");
-                        } catch (IOException e) {
-                            throw new RuntimeException(e);
-                        }
-                        if(text_sms.getText().toString().trim().isEmpty()){
-                            Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: Устройство не заряжается! - сохранена!",
-                                    Toast.LENGTH_LONG).show();
-                        }else{
-                            Toast.makeText(getActivity(), "Телефон "+name1+" сохранён! СМС: " + sms + " - сохранена!",
-                                    Toast.LENGTH_LONG).show();
-                        }
 
 
 
