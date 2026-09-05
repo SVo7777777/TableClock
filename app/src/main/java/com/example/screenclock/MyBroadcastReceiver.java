@@ -82,11 +82,11 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
         if (intentAction != null) {
             String toastMessage = "unknown intent action";
+            System.out.println(" in onReceive");
             switch (intentAction){
                 case Intent.ACTION_POWER_DISCONNECTED:
 
-                    //sendReplySms(context, number[0], toastMessage);
-                    //turnOnScreen();
+                    System.out.println(" in ACTION_POWER_DISCONNECTED");
 
                     if (Objects.equals(number[0], "number")){
                         System.out.println(number[0]);
@@ -105,12 +105,7 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
                         }
                     }
 
-//                    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(
-//                            PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE,
-//                            "MyApp::MyWakelockTag"
-//                    );
-//                    wakeLock.acquire();
-//                    Toast.makeText(context, "включен экран", Toast.LENGTH_LONG).show();
+
 
 
 
@@ -191,3 +186,9 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
         wakeLock.acquire();
     }
 }
+//                    PowerManager.WakeLock wakeLock = powerManager.newWakeLock(
+//                            PowerManager.SCREEN_BRIGHT_WAKE_LOCK | PowerManager.ACQUIRE_CAUSES_WAKEUP | PowerManager.ON_AFTER_RELEASE,
+//                            "MyApp::MyWakelockTag"
+//                    );
+//                    wakeLock.acquire();
+//                    Toast.makeText(context, "включен экран", Toast.LENGTH_LONG).show();

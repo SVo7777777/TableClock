@@ -22,7 +22,7 @@
 
 
             <TextView
-                android:id="@+id/text_home"
+                android:id="@+id/text_home2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -76,7 +76,7 @@
                 tools:ignore="NewApi,PrivateResource" />
 
             <TextView
-                android:id="@+id/text_home2"
+                android:id="@+id/text_home"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="8dp"
@@ -101,6 +101,14 @@
                 android:textStyle="bold"
                 tools:ignore="HardcodedText,MissingConstraints" />-->
 
+
+            <Button
+                android:id="@+id/startButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:backgroundTint="@color/Purple3"
+                android:text="таймер" />
 
             <com.yandex.mobile.ads.banner.BannerAdView
                 android:id="@+id/ad_container_view"

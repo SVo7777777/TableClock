@@ -123,129 +123,6 @@ public class NotificationsFragment extends Fragment {
 //смс отправляется через 5 сек после нажатия на вкладку сигнализация
         //scheduleSmsAfterUnplug(getActivity(), "+79156954581", "Sms sending!");
 
-
-//        Intent serviceIntent = new Intent(getActivity(), SmsService.class);
-//        serviceIntent.putExtra("phoneNumber", "+79156954581");
-//        serviceIntent.putExtra("message", "sms sending!!");
-//        getActivity().startService(serviceIntent);
-        //sendSmsByManager("+79156954581", "смс отправлена!");
-//        SwitchCompat switch1 = root.findViewById(R.id.switch1);
-//        switch1.setTextSize(20);
-//        switch1.setTypeface( Typeface.DEFAULT_BOLD );
-        //switch1.setPadding(12,14,6,10 );
-        //switch1.setBackgroundColor( Color.RED);
-//        switch1.setOnCheckedChangeListener((buttonView, isChecked) -> {
-//            String message = isChecked ? "Switch1:ON" : "Switch1:OFF";
-//            Toast.makeText(getActivity(), message, Toast.LENGTH_SHORT).show();
-//        });
-//        switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//            @SuppressLint("SetTextI18n")
-//            @Override
-//            public void onCheckedChanged (CompoundButton buttonView, boolean isChecked){
-////                buttonView.setText("Включить отправку смс");
-//                // checking if the switch is turned on
-//                if (isChecked) {
-//                    String line1 = null;
-//                    String line2 = null;
-//                    StringBuilder sb = new StringBuilder();
-//                    try (FileInputStream fis = getActivity().openFileInput("phone.txt");
-//                         InputStreamReader isr = new InputStreamReader(fis);
-//                         BufferedReader br = new BufferedReader(isr)) {
-//
-//                        String line = br.readLine();
-//                        if (line != null) {
-//                            line1 = line;
-//                            line = br.readLine();
-//                            if (line != null) {
-//                                line2 = line;
-//                            }
-//                        }
-//
-//                        System.out.println(line1);
-//                        System.out.println(line2);
-//
-//
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                         OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                        //String data = String.valueOf(textMultiline.getText());
-//                        osw.write(line1+"\n"+"on");
-//
-//                        System.out.println("on");
-//                        Toast.makeText(getActivity(), "Отправка СМС включена!!",
-//                                Toast.LENGTH_LONG).show();
-//                        //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//
-//                    // setting theme to night mode
-////                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-//                    System.out.println("Отправка смс включена");
-//                    buttonView.setText("Отправка смс включена");
-//                    switch1.setTextColor( Color.RED);
-//                }
-//
-//                // if the above condition turns false
-//                // it means switch is turned off
-//                // by-default the switch will be off
-//                else {
-//
-//                    // setting theme to light theme
-////                    AppCompatDelegate.setDefaultNightMode (AppCompatDelegate.MODE_NIGHT_NO);
-//                    String line1 = null;
-//                    String line2 = null;
-//                    StringBuilder sb = new StringBuilder();
-//                    try (FileInputStream fis = getActivity().openFileInput("phone.txt");
-//                         InputStreamReader isr = new InputStreamReader(fis);
-//                         BufferedReader br = new BufferedReader(isr)) {
-//
-//                        String line = br.readLine();
-//                        if (line != null) {
-//                            line1 = line;
-//                            line = br.readLine();
-//                            if (line != null) {
-//                                line2 = line;
-//                            }
-//                        }
-//
-//                        System.out.println(line1);
-//                        System.out.println(line2);
-//
-//
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//                    try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                         OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                        //String data = String.valueOf(textMultiline.getText());
-//                        osw.write(line1+"\n"+"off");
-//                        Toast.makeText(getActivity(), "Отправка СМС выключена!!",
-//                                Toast.LENGTH_LONG).show();
-//                        //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                    } catch (IOException e) {
-//                        throw new RuntimeException(e);
-//                    }
-//
-//                    buttonView.setText("Отправка смс выключена");
-//                    switch1.setTextColor( Color.WHITE);
-//                }
-//            }
-//        });
-        //
-//        brightness =
-//                Settings.System.getInt(getActivity().getContentResolver(),
-//                        Settings.System.SCREEN_BRIGHTNESS, 0);
-//        Settings.System.putInt(getActivity().getContentResolver(),
-//                Settings.System.SCREEN_BRIGHTNESS, 200);
-        //turnOnScreen();
-        //
         myBroadcastReceiver = new MyBroadcastReceiver();
         IntentFilter filter = new IntentFilter();
        filter.addAction(Intent.ACTION_POWER_DISCONNECTED);
@@ -260,12 +137,7 @@ public class NotificationsFragment extends Fragment {
 //////        // Register the receiver using the activity context.
         getActivity().registerReceiver(BroadcastReceiver, filter0);
 
-//        serviceReceiver = new ServiceReceiver();
-//        IntentFilter filter01 = new IntentFilter();
-//        filter01.addAction("android.provider.Telephony.SMS_RECEIVED");
-//
-////////        // Register the receiver using the activity context.
-//        getActivity().registerReceiver(serviceReceiver, filter0) ;
+
 
         screenReceiver = new ScreenReceiver();
         IntentFilter filter1 = new IntentFilter();
@@ -521,6 +393,7 @@ public class NotificationsFragment extends Fragment {
 
                         String name1 = String.valueOf(employee_name1.getText());
                         String sms = String.valueOf(text_sms.getText());
+                        System.out.println(sms);
 //                        String phone = String.valueOf(employee_phone.getText());
 //                        String address = String.valueOf(employee_address.getText());
                         String name_employee = name1+" ";//+name2;
@@ -533,6 +406,7 @@ public class NotificationsFragment extends Fragment {
                             //SharedPreferences.Editor editor = prefs.edit();
                             SharedPreferences.Editor editor = prefs.edit();
                             editor.putString("sms", "Устройство не заряжается!");
+                            sms = "Устройство не заряжается!";
                             editor.apply();
 
                             try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
@@ -570,6 +444,8 @@ public class NotificationsFragment extends Fragment {
                                 throw new RuntimeException(e);
                             }
                         }
+                        System.out.println(name1);
+                        System.out.println(sms);
 
 
 

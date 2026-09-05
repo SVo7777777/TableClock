@@ -2,42 +2,48 @@ package com.example.screenclock.ui.home;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.NotificationManager;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.graphics.Color;
-import android.graphics.Typeface;
 import android.location.Location;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.PowerManager;
+import android.os.SystemClock;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.TimePicker;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
-import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 
+import com.example.screenclock.AlarmSoundService;
 import com.example.screenclock.BroadcastReceiver0;
 
 import com.example.screenclock.FileEmpty;
 import android.Manifest;
 import com.example.screenclock.PhoneFromFile;
 import com.example.screenclock.R;
+import com.example.screenclock.RingtonePlayingService;
+import com.example.screenclock.TimerAlarmReceiver;
 import com.example.screenclock.databinding.FragmentHomeBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -50,15 +56,12 @@ import com.yandex.mobile.ads.common.AdRequest;
 import com.yandex.mobile.ads.common.AdRequestError;
 import com.yandex.mobile.ads.common.ImpressionData;
 import com.yandex.mobile.ads.common.YandexAds;
+import android.content.Intent;
 
-import java.io.BufferedReader;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.Objects;
-import java.util.concurrent.Executor;
 
 
 public class HomeFragment extends Fragment {
@@ -70,11 +73,30 @@ public class HomeFragment extends Fragment {
     Button button3;
     public String phone;
    TextView text_home2;
+    Button startButton;
     @SuppressLint("SdCardPath")
     private static final String APP_SD_PATH = "/data/data/com.example.screenclock";
      PowerManager powerManager;
     FusedLocationProviderClient fusedLocationClient;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1001;
+    private CountDownTimer countDownTimer;
+    //private static final long DURATION_MS = 60_000; // 60 секунд
+    private static final long DURATION_MS = 1L * 60 * 1000; // 45 минут
+    long durationMs;
+
+    // Например, 2 часа 45 минут = (2*60 + 45) * 60 * 1000
+    //DURATION_MS = 2L * 60 * 60 * 1000 + 45L * 60 * 1000;
+    private static final long TICK_INTERVAL_MS = 1_000; // обновлять каждую секунду
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
+    private static final int REQUEST_CODE = 123;
+    private static final String PREFS_NAME = "timer_prefs";
+    private static int nextNotificationId = 1001;
+    private int notificationId = nextNotificationId++;
+    private String currentTimerId = String.valueOf(notificationId); // для SharedPreferences
+
+    //private String currentTimerId; // храним ID текущего таймера
+
     @SuppressLint("UseRequireInsteadOfGet")
     public View onCreateView(@NonNull LayoutInflater inflater,
                              ViewGroup container, Bundle savedInstanceState) {
@@ -84,7 +106,171 @@ public class HomeFragment extends Fragment {
         binding = FragmentHomeBinding.inflate(inflater, container, false);
         View root = binding.getRoot();
         //button3 = root.findViewById(R.id.button3);
-        text_home2 = root.findViewById(R.id.textView2);
+        text_home2 = root.findViewById(R.id.text_home);
+        startButton = root.findViewById(R.id.startButton);
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_NAME, getActivity().MODE_PRIVATE);
+        SharedPreferences.Editor editor = prefs.edit();
+        //String message = prefs.getString("hours","" );
+        editor.putString("hours", "0");
+        editor.putString("minutes", "45");
+        editor.apply();
+// Для Android M+ (API 23+) getHour/getMinute, иначе getCurrentHour/getCurrentMinute
+//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+//            timePicker.setIs24HourView(true);
+//        }
+
+        notificationId = nextNotificationId++;              // int, гарантированно в пределах int
+        currentTimerId = String.valueOf(notificationId);     // используем его же как ключ в SharedPreferences
+
+        startButton.setOnClickListener(new View.OnClickListener() {
+            @SuppressLint({"SetTextI18n", "SimpleDateFormat"})
+            @Override
+            public void onClick(View v) {
+                @SuppressLint("UseRequireInsteadOfGet")
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
+                view = (LinearLayout) getLayoutInflater().inflate(R.layout.activity_timer, null);
+                //timePicker.setIs24HourView(true);
+                Button btnStart = view.findViewById(R.id.btnStart);
+                Button close = view.findViewById(R.id.close);
+                Button stop = view.findViewById(R.id.button3);
+                String h = prefs.getString("hours","" );
+                String m = prefs.getString("minutes","" );
+                System.out.println(h);
+                System.out.println(m);
+                TimePicker timePicker = view.findViewById(R.id.timePicker);
+                timePicker.setIs24HourView(true);
+                timePicker.setHour(Integer.parseInt(h));      // часы
+                timePicker.setMinute(Integer.parseInt(m));   // минуты
+
+
+
+
+
+                builder.setView(view);
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
+                btnStart.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        int hour = timePicker.getHour();
+                        int minute = timePicker.getMinute();
+                        SharedPreferences.Editor editor = prefs.edit();
+                        //String message = prefs.getString("hours","" );
+                        editor.putString("hours", String.valueOf(hour));
+                        editor.putString("minutes", String.valueOf(minute));
+                        editor.apply();
+
+                        if (hour==0){
+                            startTimer(minute);
+                            //durationMs = minute * 1000L; // в миллисекундах
+                        }else {
+                            int m = hour*60+minute;
+                            //durationMs = m * 1000L; // в миллисекундах
+                            startTimer(m);
+                        }
+                        durationMs = ((hour * 60L + minute) * 60L) * 1000L;
+                        if (countDownTimer != null) {
+                            countDownTimer.cancel();
+                        }
+                        countDownTimer = new CountDownTimer(durationMs, TICK_INTERVAL_MS) {
+                            @Override
+                            public void onTick(long millisUntilFinished) {
+                                long totalSeconds = millisUntilFinished / 1000;
+
+                                long hours = totalSeconds / 3600;
+                                long minutes = (totalSeconds % 3600) / 60;
+                                long seconds = totalSeconds % 60;
+//                                long remainingMs = ...;
+//                                long h = remainingMs / 3600000;
+//                                long m = (remainingMs % 3600000) / 60000;
+//                                long s = (remainingMs % 60000) / 1000;
+
+//                    long minutes = millisUntilFinished / (1000 * 60);
+//                    long seconds = (millisUntilFinished / 1000) % 60;
+//
+//                    String timeText = String.format("%02d:%02d", minutes, seconds);
+//                    timerTextView.setText(timeText);
+                                @SuppressLint("DefaultLocale")
+                                String timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+                                text_home2.setText(timeText);
+                            }
+
+                            @SuppressLint("SetTextI18n")
+                            @Override
+                            public void onFinish() {
+                                if (shouldStopTimer()) {
+                                    text_home2.setText("00:00:00");
+                                    return;
+                                }
+                                text_home2.setText("00:00:00");
+                                Toast.makeText(getActivity(), "Время вышло!", Toast.LENGTH_LONG).show();
+                                closeNotification(notificationId);
+                            }
+                        }.start();
+                        alertDialog.dismiss();
+                    }
+                });
+                close.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        alertDialog.dismiss();
+                    }
+                });
+                stop.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent serviceIntent1 = new Intent(getActivity(), AlarmSoundService.class);
+                        getActivity().stopService(serviceIntent1 );
+                        Toast.makeText(getActivity(), "Таймер остановлен!", Toast.LENGTH_SHORT).show();
+                        text_home2.setText("00:00:00");
+                        alertDialog.dismiss();
+                    }
+                });
+            }
+
+        });
+
+//        startButton.setOnClickListener(v -> {
+//
+//
+//                startTimer(1);
+//                if (countDownTimer != null) {
+//                    countDownTimer.cancel();
+//                }
+//                countDownTimer = new CountDownTimer(DURATION_MS, TICK_INTERVAL_MS) {
+//                    @Override
+//                    public void onTick(long millisUntilFinished) {
+//                        long totalSeconds = millisUntilFinished / 1000;
+//
+//                        long hours = totalSeconds / 3600;
+//                        long minutes = (totalSeconds % 3600) / 60;
+//                        long seconds = totalSeconds % 60;
+////                    long minutes = millisUntilFinished / (1000 * 60);
+////                    long seconds = (millisUntilFinished / 1000) % 60;
+////
+////                    String timeText = String.format("%02d:%02d", minutes, seconds);
+////                    timerTextView.setText(timeText);
+//                        @SuppressLint("DefaultLocale")
+//                        String timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds);
+//                        text_home2.setText(timeText);
+//                    }
+//
+//                    @SuppressLint("SetTextI18n")
+//                    @Override
+//                    public void onFinish() {
+//                        if (shouldStopTimer()) {
+//                            text_home2.setText("00:00:00");
+//                            return;
+//                        }
+//                        text_home2.setText("00:00:00");
+//                        Toast.makeText(getActivity(), "Время вышло!", Toast.LENGTH_LONG).show();
+//                        closeNotification(notificationId);
+//                    }
+//                }.start();
+//
+//        });
 //        button3.setText("Отправка смс выключена");
 //        powerManager = (PowerManager) Objects.requireNonNull(Objects.requireNonNull(getActivity())).getSystemService(Context.POWER_SERVICE);
         powerManager = (PowerManager) Objects.requireNonNull(getActivity()).getSystemService(Context.POWER_SERVICE);
@@ -126,296 +312,7 @@ public class HomeFragment extends Fragment {
         String sFile=sFolder+"/"+"phone.txt";
         String[] number = PhoneFromFile.phoneFromFile(sFile);
         //start128-407
-//        if (number[1].equals("on")){
-//            button3.setTextColor(Color.RED);
-//            System.out.println(number[1]);
-//            button3.setText("Отправка геолокации включена");
-//        }else {
-//            button3.setTextColor(Color.WHITE);
-//            System.out.println(number[1]);
-//            button3.setText("Отправка геолокации выключена");
-//        }
-//        button3.setOnClickListener(new View.OnClickListener() {
-//            @SuppressLint({"SetTextI18n", "SimpleDateFormat"})
-//            @Override
-//            public void onClick(View v) {
-////                @SuppressLint("SimpleDateFormat") final SimpleDateFormat sdf1 = new SimpleDateFormat("EE dd-MM-yyyy");
-////                calendar.set(current_year, current_month, current_day);
-////                String sDate_now = sdf1.format(calendar.getTime());
-////                System.out.println("sDate_now=" + sDate_now);
-////                String data = current_month+" "+current_year;
-////                String month3 = monthNames[current_month];
-////                System.out.println(month3);
-////                String month_year = month3 + " "+current_year;
-//
-//
-//                @SuppressLint("UseRequireInsteadOfGet")
-//                AlertDialog.Builder builder = new AlertDialog.Builder(Objects.requireNonNull(getActivity()));
-//                view = (LinearLayout) getLayoutInflater().inflate(R.layout.activity_add_employee, null);
-////                TextView time = view.findViewById(R.id.textView);
-////                time.setText("");
-//                TextView month = view.findViewById(R.id.month);
-//                Button add = view.findViewById(R.id.button);
-//                Button close = view.findViewById(R.id.close);
-//                Button delete = view.findViewById(R.id.button3);
-//                EditText employee_name1 = view.findViewById(R.id.editTextName1);
-//                SwitchCompat switch1 = view.findViewById(R.id.switch1);
-//                month.setText("Введите номер телефона, на который нужно отправить СМС с геолокацией телефона");
-//
-//                String line1 = null;
-//                String line2 = null;
-//                StringBuilder sb = new StringBuilder();
-//                try (FileInputStream fis = getActivity().openFileInput("phone.txt");
-//                     InputStreamReader isr = new InputStreamReader(fis);
-//                     BufferedReader br = new BufferedReader(isr)) {
-//
-//                    String line = br.readLine();
-//                    if (line != null) {
-//                        line1 = line;
-//                        line = br.readLine();
-//                        if (line != null) {
-//                            line2 = line;
-//                        }
-//                    }
-//                    if (Objects.equals(line1, "number")){
-//                        System.out.println("number");
-//                    }else {
-//                        employee_name1.setText(line1);
-//                    }
-//                    if (Objects.equals(line, "on")){
-//                        System.out.println("on");
-//                        switch1.setChecked(true);
-//                        switch1.setTextColor( Color.RED);
-//                        switch1.setText("Отправка смс включена");
-//                        button3.setTextColor(Color.RED);
-//                        button3.setText("Геолокация включена");
-//                        //sendSmsByManager("+79156954581", "смс отправлена!");
-//                    }else {
-//                        button3.setTextColor(Color.WHITE);
-//                        button3.setText("Отправка геолокации выключена");
-//                    }
-//
-//                    System.out.println(line1);
-//                    System.out.println(line2);
-//
-//
-//                } catch (IOException e) {
-//                    throw new RuntimeException(e);
-//                }
-//
-////                SwitchCompat switch1 = view.findViewById(R.id.switch1);
-//
-//                switch1.setTextSize(20);
-//                switch1.setTypeface( Typeface.DEFAULT_BOLD );
-//                switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//                    @SuppressLint("SetTextI18n")
-//                    @Override
-//                    public void onCheckedChanged (CompoundButton buttonView, boolean isChecked){
-////                buttonView.setText("Включить отправку смс");
-//                        // checking if the switch is turned on
-//                        if (isChecked) {
-//                            String line1 = null;
-//                            String line2 = null;
-//                            StringBuilder sb = new StringBuilder();
-//                            try (FileInputStream fis = getActivity().openFileInput("phone.txt");
-//                                 InputStreamReader isr = new InputStreamReader(fis);
-//                                 BufferedReader br = new BufferedReader(isr)) {
-//
-//                                String line = br.readLine();
-//                                if (line != null) {
-//                                    line1 = line;
-//                                    line = br.readLine();
-//                                    if (line != null) {
-//                                        line2 = line;
-//                                    }
-//                                }
-//
-//                                System.out.println(line1);
-//                                System.out.println(line2);
-//
-//
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                                //String data = String.valueOf(textMultiline.getText());
-//                                osw.write(line1+"\n"+"on");
-//                                //sendSmsByManager("+79156954581", "смс отправлена!");
-//                                System.out.println("on");
-//                                Toast.makeText(getActivity(), "Отправка СМС включена!!",
-//                                        Toast.LENGTH_LONG).show();
-//                                //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//
-//                            // setting theme to night mode
-////                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-//                            System.out.println("Отправка смс включена");
-//                            // setting theme to night mode
-////                    AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
-//                            buttonView.setText("Отправка смс включена");
-//                            switch1.setTextColor( Color.RED);
-//                            button3.setTextColor(Color.RED);
-//                            button3.setText("Геолокация включена");
-//                        }
-//
-//                        // if the above condition turns false
-//                        // it means switch is turned off
-//                        // by-default the switch will be off
-//                        else {
-//                            String line1 = null;
-//                            String line2 = null;
-//                            StringBuilder sb = new StringBuilder();
-//                            try (FileInputStream fis = getActivity().openFileInput("phone.txt");
-//                                 InputStreamReader isr = new InputStreamReader(fis);
-//                                 BufferedReader br = new BufferedReader(isr)) {
-//
-//                                String line = br.readLine();
-//                                if (line != null) {
-//                                    line1 = line;
-//                                    line = br.readLine();
-//                                    if (line != null) {
-//                                        line2 = line;
-//                                    }
-//                                }
-//
-//                                System.out.println(line1);
-//                                System.out.println(line2);
-//
-//
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                                //String data = String.valueOf(textMultiline.getText());
-//                                osw.write(line1+"\n"+"off");
-//                                Toast.makeText(getActivity(), "Отправка СМС выключена!!",
-//                                        Toast.LENGTH_LONG).show();
-//                                //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//
-//                            // setting theme to light theme
-////                    AppCompatDelegate.setDefaultNightMode (AppCompatDelegate.MODE_NIGHT_NO);
-//                            buttonView.setText("Отправка смс выключена");
-//                            switch1.setTextColor( Color.WHITE);
-//                            button3.setTextColor(Color.WHITE);
-//                            button3.setText("Отправка геолокации выключена");
-//                        }
-//                    }
-//                });
-////                EditText employee_name2 = view.findViewById(R.id.editTextName2);
-////                EditText employee_phone = view.findViewById(R.id.editTextPhon2);
-////                EditText employee_address = view.findViewById(R.id.editTextAdress2);
-//
-////                String name = (String) button_employee.getText();
-////                String[] str = name.split(" ");
-////                employee_name1.setText(str[0]);
-////                employee_name2.setText(str[1]);
-//
-//                //int id = mydb.GetIdEmployee(name,  DatabaseHelperLess.TABLE);
-////                String ph = mydb.getPhone(name,DatabaseHelperLess.TABLE);
-////                String ad = mydb.getAddress(name, DatabaseHelperLess.TABLE);
-////                employee_phone.setText(ph);
-////                employee_address.setText(ad);
-//
-//                //student_payment.setText(((String) payment.getText()).substring(10));
-//
-//
-//                employee_name1.requestFocus();
-//                employee_name1.setSelection(employee_name1.getText().length());
-//                //вывод клавиатуры после нажатия на дату
-//                InputMethodManager imm = (InputMethodManager) getActivity().getSystemService(Context.INPUT_METHOD_SERVICE);
-//                assert imm != null;
-//                imm.showSoftInput(employee_name1, InputMethodManager.SHOW_IMPLICIT);
-//
-//                builder.setView(view);
-//                AlertDialog alertDialog = builder.create();
-//                alertDialog.show();
-//
-//                add.setOnClickListener(new View.OnClickListener() {
-//                    @SuppressLint("SetTextI18n")
-//                    @Override
-//                    public void onClick(View view) {
-//
-//                        String name1 = String.valueOf(employee_name1.getText());
-////                        String name2 = String.valueOf(employee_name2.getText());
-////                        String phone = String.valueOf(employee_phone.getText());
-////                        String address = String.valueOf(employee_address.getText());
-//                        String name_employee = name1+" ";//+name2;
-//
-//                        if (employee_name1.getText().toString().trim().isEmpty()){// || employee_name2.getText().toString().trim().isEmpty()) {
-//                            Toast.makeText(getActivity(), "Заполните поля!", Toast.LENGTH_LONG).show();
-//
-//                        } else {
-//
-//                            try (FileOutputStream fos = getActivity().openFileOutput("phone.txt", Context.MODE_PRIVATE);
-//                                 OutputStreamWriter osw = new OutputStreamWriter(fos)) {
-//                                //String data = String.valueOf(textMultiline.getText());
-//                                osw.write(name1+"\noff");
-//                                Toast.makeText(getActivity(), "Телефон "+name1+" сохранён!",
-//                                        Toast.LENGTH_LONG).show();
-//                                phone = name1;
-//                                //вывод диалогового окна, что запись внесена
-////                                CustomDialogFragment dialog2 = new CustomDialogFragment();
-////                                dialog2.show(getSupportFragmentManager(), "custom");
-//                            } catch (IOException e) {
-//                                throw new RuntimeException(e);
-//                            }
-//                            alertDialog.dismiss();
-//
-//                        }
-//
-//
-//                        //обновление виджета
-////                        Intent intentq = new Intent(getActivity(), MyWidget2.class);
-////                        intentq.setAction("android.appwidget.action.APPWIDGET_UPDATE");
-////                        int[] ids = AppWidgetManager.getInstance(getActivity().getApplication()).getAppWidgetIds(new ComponentName(getActivity().getApplication(), MyWidget2.class));
-////                        intentq.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-////                        getActivity().sendBroadcast(intentq);
-//                        //Toast.makeText(getApplicationContext(), data, Toast.LENGTH_LONG).show();//display the text of button1
-//                    }
-//
-//                });
-//                close.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        alertDialog.dismiss();
-//                    }
-//                });
-//                delete.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-////                        int id = mydb.GetIdEmployee(name,  DatabaseHelperLess.TABLE);
-////                        mydb.deleteContact1(id);
-////                        mydb.deleteContact(id);
-////                        list.removeView(ln);
-//                        employee_name1.setText("");
-//                        //alertDialog.dismiss();
-//                    }
-//                });
-//            };
-//        });
-        //finish128-407
-//
-//        int permissionStatus = ContextCompat.checkSelfPermission(this, Manifest.permission.READ_CONTACTS);
-//
-//        if (permissionStatus == PackageManager.PERMISSION_GRANTED) {
-//            readContacts();
-//        } else {
-//            ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.READ_CONTACTS},
-//                    REQUEST_CODE_PERMISSION_READ_CONTACTS);
-//        }
-
-//////        // Register the receiver using the activity context.
+// Register the receiver using the activity context.
         getActivity().registerReceiver(BroadcastReceiver, filter0);
 
         binding.adContainerView.getViewTreeObserver().addOnGlobalLayoutListener(
@@ -437,6 +334,69 @@ public class HomeFragment extends Fragment {
         return root;
 
 
+    }
+    @SuppressLint("SetTextI18n")
+    private void stopTimer() {
+        if (countDownTimer != null) {
+            countDownTimer.cancel();
+            countDownTimer = null;
+        }
+        text_home2.setText("00:00");
+    }
+    private boolean shouldStopTimer() {
+        SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_NAME, getActivity().MODE_PRIVATE);
+        boolean stopRequested = prefs.getBoolean("stop_requested_" + currentTimerId, false);
+        if (stopRequested) {
+            // Сбросим флаг, чтобы не срабатывало .повторно
+            prefs.edit().remove("stop_requested_" + currentTimerId).apply();
+            return true;
+        }
+        return false;
+    }
+
+    private void closeNotification(int id) {
+        NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(id);
+    }
+    @SuppressLint("ScheduleExactAlarm")
+    private void startTimer(int minutes) {
+        alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
+        Intent intent = new Intent(getActivity(), TimerAlarmReceiver.class);
+        pendingIntent = PendingIntent.getBroadcast(
+                getActivity(),
+                REQUEST_CODE,
+                intent,
+                PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
+        );
+//        Intent intent = new Intent(this, TimerService.class);
+//        intent.putExtra("durationMinutes", minutes);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            startForegroundService(intent);
+//        } else {
+//            startService(intent);
+//        }
+        long delayMs = minutes * 60_000L; // минуты -> миллисекунды
+        long triggerTime = SystemClock.elapsedRealtime() + delayMs;
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            alarmManager.setExactAndAllowWhileIdle(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+            );
+        } else {
+            alarmManager.setExact(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP,
+                    triggerTime,
+                    pendingIntent
+            );
+        }
+    }
+
+    private void cancelTimer() {
+        if (alarmManager != null && pendingIntent != null) {
+            alarmManager.cancel(pendingIntent);
+        }
     }
 //    @Override
 //    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
@@ -578,6 +538,16 @@ public class HomeFragment extends Fragment {
             getActivity().unregisterReceiver(BroadcastReceiver);
             BroadcastReceiver = null;
         }
+//        if (countDownTimer != null) {
+//            countDownTimer.cancel();
+//            countDownTimer = null;
+//        }
+//        if (TimerAlarmReceiver != null) {
+//            getActivity().unregisterReceiver(TimerAlarmReceiver);
+//            BroadcastReceiver = null;
+//        }
+        stopTimer();
+        cancelTimer();
         super.onDestroyView();
         binding = null;
     }

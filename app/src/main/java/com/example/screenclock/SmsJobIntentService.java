@@ -23,6 +23,8 @@ public class SmsJobIntentService extends JobIntentService {
             try {
                 SmsManager smsManager = SmsManager.getDefault();
                 smsManager.sendTextMessage(phoneNumber, null, message, null, null);
+                System.out.println("sms was sanded");
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
