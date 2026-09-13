@@ -20,6 +20,29 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
+            <androidx.appcompat.widget.SwitchCompat
+                android:id="@+id/switch1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:background="@color/Purple2"
+                android:checked="false"
+                android:gravity="center|right"
+                android:minHeight="48dp"
+                android:paddingStart="10dp"
+                android:text="Не выключать экран"
+
+
+                android:textColor="@color/white"
+
+
+                android:textOff=""
+                android:textOn=""
+
+                app:showText="true"
+
+                tools:ignore="HardcodedText,UseSwitchCompatOrMaterialXml" />
+
 
             <TextView
                 android:id="@+id/text_home2"
@@ -30,7 +53,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:textAlignment="center"
-                android:textSize="60sp"
+                android:textSize="30sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -84,6 +107,7 @@
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
                 android:textAlignment="center"
+                android:textColor="#FFEB3B"
                 android:textSize="60sp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent"

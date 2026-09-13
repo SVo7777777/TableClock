@@ -4,7 +4,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.app.NotificationManager;
+import android.os.Build;
 import android.util.Log;
+
+import androidx.core.content.ContextCompat;
 
 public class TimerControlReceiver extends BroadcastReceiver {
 //    public static final String ACTION_STOP_TIMER = "com.example.myapp.ACTION_STOP_TIMER";
@@ -19,11 +22,23 @@ public class TimerControlReceiver extends BroadcastReceiver {
 
             Log.d("TimerControl", "onReceive: " + intent.getAction());
 
+//            if (ACTION_STOP_TIMER.equals(intent.getAction())) {
+//                // Останавливаем сервис со звуком → onDestroy → звук прекращается, уведомление убирается
+//                //context.stopService(new Intent(context, AlarmSoundService.class));
+//                Intent stopServiceIntent = new Intent(context, AlarmSoundService.class)
+//                        .putExtra("action", "stop");
+//                ContextCompat.startService(context, stopServiceIntent);
+//            }
+
             if (ACTION_STOP_TIMER.equals(intent.getAction())) {
-                // Останавливаем сервис со звуком → onDestroy → звук прекращается, уведомление убирается
-                context.stopService(new Intent(context, AlarmSoundService.class));
+                Intent stopIntent = new Intent(context, AlarmSoundService.class)
+                        .putExtra("action", "stop");
+                context.startService(stopIntent);
             }
-        }
+
+
     }
+    }
+
 
 

@@ -9,6 +9,7 @@ import android.content.Context;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
+import android.graphics.Typeface;
 import android.location.Location;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,7 +22,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.ViewTreeObserver;
+import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.TimePicker;
@@ -30,6 +33,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.widget.SwitchCompat;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.fragment.app.Fragment;
@@ -44,6 +48,7 @@ import com.example.screenclock.PhoneFromFile;
 import com.example.screenclock.R;
 import com.example.screenclock.RingtonePlayingService;
 import com.example.screenclock.TimerAlarmReceiver;
+import com.example.screenclock.TimerControlReceiver;
 import com.example.screenclock.databinding.FragmentHomeBinding;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
@@ -83,7 +88,7 @@ public class HomeFragment extends Fragment {
     //private static final long DURATION_MS = 60_000; // 60 секунд
     private static final long DURATION_MS = 1L * 60 * 1000; // 45 минут
     long durationMs;
-
+    private NotificationManager notificationManager;
     // Например, 2 часа 45 минут = (2*60 + 45) * 60 * 1000
     //DURATION_MS = 2L * 60 * 60 * 1000 + 45L * 60 * 1000;
     private static final long TICK_INTERVAL_MS = 1_000; // обновлять каждую секунду
@@ -93,6 +98,10 @@ public class HomeFragment extends Fragment {
     private static final String PREFS_NAME = "timer_prefs";
     private static int nextNotificationId = 1001;
     private int notificationId = nextNotificationId++;
+    private boolean isRunning = false;
+    private boolean isTimerCancelled = false;
+    SwitchCompat switch1;
+
     private String currentTimerId = String.valueOf(notificationId); // для SharedPreferences
 
     //private String currentTimerId; // храним ID текущего таймера
@@ -108,6 +117,26 @@ public class HomeFragment extends Fragment {
         //button3 = root.findViewById(R.id.button3);
         text_home2 = root.findViewById(R.id.text_home);
         startButton = root.findViewById(R.id.startButton);
+        switch1 = root.findViewById(R.id.switch1);
+        switch1.setTextSize(20);
+        switch1.setTypeface( Typeface.DEFAULT_BOLD );
+        switch1.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                                               @SuppressLint("SetTextI18n")
+                                               @Override
+                                               public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+//                buttonView.setText("Включить отправку смс");
+                                                   // checking if the eswitch is turned on
+                                                   if (isChecked) {
+                                                       getActivity().getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                                                   }else {
+                                                       getActivity().getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+
+                                                   }
+                                               }
+                                           });
+
+
+
         SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_NAME, getActivity().MODE_PRIVATE);
         SharedPreferences.Editor editor = prefs.edit();
         //String message = prefs.getString("hours","" );
@@ -174,6 +203,8 @@ public class HomeFragment extends Fragment {
                         if (countDownTimer != null) {
                             countDownTimer.cancel();
                         }
+                        //if (isRunning) return;
+                        isTimerCancelled = false;  // <-- сначала флаг
                         countDownTimer = new CountDownTimer(durationMs, TICK_INTERVAL_MS) {
                             @Override
                             public void onTick(long millisUntilFinished) {
@@ -182,16 +213,7 @@ public class HomeFragment extends Fragment {
                                 long hours = totalSeconds / 3600;
                                 long minutes = (totalSeconds % 3600) / 60;
                                 long seconds = totalSeconds % 60;
-//                                long remainingMs = ...;
-//                                long h = remainingMs / 3600000;
-//                                long m = (remainingMs % 3600000) / 60000;
-//                                long s = (remainingMs % 60000) / 1000;
-
-//                    long minutes = millisUntilFinished / (1000 * 60);
-//                    long seconds = (millisUntilFinished / 1000) % 60;
 //
-//                    String timeText = String.format("%02d:%02d", minutes, seconds);
-//                    timerTextView.setText(timeText);
                                 @SuppressLint("DefaultLocale")
                                 String timeText = String.format("%02d:%02d:%02d", hours, minutes, seconds);
                                 text_home2.setText(timeText);
@@ -200,32 +222,70 @@ public class HomeFragment extends Fragment {
                             @SuppressLint("SetTextI18n")
                             @Override
                             public void onFinish() {
+                                // Проверяем, не отменил ли пользователь до завершения
+                                if (isTimerCancelled) return;
                                 if (shouldStopTimer()) {
                                     text_home2.setText("00:00:00");
                                     return;
                                 }
+                                //isRunning = false;
                                 text_home2.setText("00:00:00");
                                 Toast.makeText(getActivity(), "Время вышло!", Toast.LENGTH_LONG).show();
-                                closeNotification(notificationId);
+
+//                                // Останавливаем сервис звука и уведомления
+//                                Intent stopIntent = new Intent(getActivity(), AlarmSoundService.class);
+//                                stopIntent.putExtra("action", "stop");
+//                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//                                    getActivity().startForegroundService(stopIntent);
+//                                } else {
+//                                    getActivity().startService(stopIntent);
+//                                }
+
                             }
                         }.start();
+                        //isRunning = true;
                         alertDialog.dismiss();
                     }
                 });
                 close.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        //isRunning = false;
                         alertDialog.dismiss();
                     }
                 });
                 stop.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        Intent serviceIntent1 = new Intent(getActivity(), AlarmSoundService.class);
-                        getActivity().stopService(serviceIntent1 );
+
+                        isTimerCancelled = true;  // <-- сначала флаг
+                        // 1. Останавливаем таймер
+                        if (countDownTimer != null) {
+                            countDownTimer.cancel();
+                            countDownTimer = null;
+                        }
+                        // 2. ОТМЕНЯЕМ AlarmManager — это главное!
+                        if (alarmManager != null && pendingIntent != null) {
+                            alarmManager.cancel(pendingIntent);
+                        }
+                        // stop service
+                        Intent stopIntent = new Intent(getActivity(), AlarmSoundService.class);
+                        stopIntent.putExtra("action", "stop");
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            getActivity().startForegroundService(stopIntent); // на Android 8+ для корректной доставки
+                        } else {
+                            getActivity().startService(stopIntent);
+                        }
+                        // 4. Записываем флаг для shouldStopTimer()
+                        prefs.edit()
+                                .putBoolean("stop_requested_" + currentTimerId, true)
+                                .apply();
+//
                         Toast.makeText(getActivity(), "Таймер остановлен!", Toast.LENGTH_SHORT).show();
                         text_home2.setText("00:00:00");
+                        // 3. Закрываем диалог
                         alertDialog.dismiss();
+
                     }
                 });
             }
@@ -335,13 +395,36 @@ public class HomeFragment extends Fragment {
 
 
     }
+//    private void cancelNotification() {
+//        notificationManager.cancel(1001);
+//        if (notificationManager != null) {
+//            notificationManager.cancel(1001);
+//            //countDownTimer = null;
+//        }
+//    }
     @SuppressLint("SetTextI18n")
     private void stopTimer() {
         if (countDownTimer != null) {
             countDownTimer.cancel();
             countDownTimer = null;
         }
+        // Останавливаем сервис звука и уведомления
+        Intent stopIntent = new Intent(getActivity(), AlarmSoundService.class);
+        stopIntent.putExtra("action", "stop");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            getActivity().startForegroundService(stopIntent);
+        } else {
+            getActivity().startService(stopIntent);
+        }
+        if (alarmManager != null && pendingIntent != null) {
+            alarmManager.cancel(pendingIntent);
+        }
+        isRunning = false;
         text_home2.setText("00:00");
+    }
+    private void closeNotification(int id) {
+        NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm != null) nm.cancel(id);
     }
     private boolean shouldStopTimer() {
         SharedPreferences prefs = getActivity().getSharedPreferences(PREFS_NAME, getActivity().MODE_PRIVATE);
@@ -354,10 +437,7 @@ public class HomeFragment extends Fragment {
         return false;
     }
 
-    private void closeNotification(int id) {
-        NotificationManager nm = (NotificationManager) getActivity().getSystemService(Context.NOTIFICATION_SERVICE);
-        if (nm != null) nm.cancel(id);
-    }
+
     @SuppressLint("ScheduleExactAlarm")
     private void startTimer(int minutes) {
         alarmManager = (AlarmManager) getActivity().getSystemService(Context.ALARM_SERVICE);
@@ -368,13 +448,7 @@ public class HomeFragment extends Fragment {
                 intent,
                 PendingIntent.FLAG_IMMUTABLE | PendingIntent.FLAG_UPDATE_CURRENT
         );
-//        Intent intent = new Intent(this, TimerService.class);
-//        intent.putExtra("durationMinutes", minutes);
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            startForegroundService(intent);
-//        } else {
-//            startService(intent);
-//        }
+
         long delayMs = minutes * 60_000L; // минуты -> миллисекунды
         long triggerTime = SystemClock.elapsedRealtime() + delayMs;
 
@@ -393,7 +467,7 @@ public class HomeFragment extends Fragment {
         }
     }
 
-    private void cancelTimer() {
+    private void cancelTimer1() {
         if (alarmManager != null && pendingIntent != null) {
             alarmManager.cancel(pendingIntent);
         }
@@ -525,7 +599,7 @@ public class HomeFragment extends Fragment {
                     System.out.println("onImpression");
             }
         });
-        final AdRequest adRequest = new AdRequest.Builder("R-M-18319832-1")
+        final AdRequest adRequest = new AdRequest.Builder("R-M-18319832-1")//R-M-18319832-1
                 // Methods in the AdRequest.Builder class can be used here to specify individual options settings.
                 .build();
         bannerAd.loadAd(adRequest);
@@ -546,8 +620,8 @@ public class HomeFragment extends Fragment {
 //            getActivity().unregisterReceiver(TimerAlarmReceiver);
 //            BroadcastReceiver = null;
 //        }
-        stopTimer();
-        cancelTimer();
+        //stopTimer();
+        //cancelTimer();
         super.onDestroyView();
         binding = null;
     }
